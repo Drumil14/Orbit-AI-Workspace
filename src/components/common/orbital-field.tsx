@@ -1,20 +1,13 @@
 "use client";
 
-import {
-  motion,
-  useReducedMotion,
-  useTransform,
-  type MotionValue,
-} from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 
 /**
  * The brand composition behind the auth panel: a calm orbital system.
  *
  * Concentric, foreshortened orbits precess at their own slow rates (real
  * systems don't move in lockstep), bodies ride two of them, and one accent body
- * carries Orbit's single indigo. A soft ambient glow breathes underneath and a
- * whisper-faint dot grid — the same blueprint texture as the app's work surface
- * — grounds it. Depth layers respond to the pointer with a light parallax.
+ * carries Orbit's single indigo. A soft ambient glow breathes underneath.
  *
  * Every bit of motion is gated on `useReducedMotion`; reduced simply renders the
  * system at rest, which is composed to look intentional standing still.
@@ -40,34 +33,11 @@ const RINGS: Ring[] = [
   { rx: 268, ry: 168, base: 22, dur: 90, dir: -1, stroke: 0.055 },
 ];
 
-export function OrbitalField({
-  px,
-  py,
-}: {
-  px: MotionValue<number>;
-  py: MotionValue<number>;
-}) {
+export function OrbitalField() {
   const reduce = useReducedMotion();
-
-  const glowX = useTransform(px, (v) => v * 1.8);
-  const glowY = useTransform(py, (v) => v * 1.8);
-  const fieldX = useTransform(px, (v) => v * -1.1);
-  const fieldY = useTransform(py, (v) => v * -1.1);
 
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden">
-      {/* Blueprint dot grid — Orbit's work-surface texture, near-subliminal. */}
-      <div
-        className="absolute inset-0"
-        style={{
-          backgroundImage:
-            "radial-gradient(rgba(255,255,255,0.045) 1px, transparent 1px)",
-          backgroundSize: "26px 26px",
-          maskImage:
-            "radial-gradient(120% 100% at 70% 30%, black 30%, transparent 85%)",
-        }}
-      />
-
       {/* Ambient glow, softly breathing. */}
       <motion.div
         className="absolute rounded-full"
@@ -76,8 +46,6 @@ export function OrbitalField({
           top: FY - 300,
           width: 600,
           height: 600,
-          x: glowX,
-          y: glowY,
           background:
             "radial-gradient(closest-side, rgba(108,114,232,0.30), rgba(108,114,232,0.05) 55%, transparent 72%)",
           filter: "blur(6px)",
@@ -86,11 +54,10 @@ export function OrbitalField({
         transition={{ duration: 11, repeat: Infinity, ease: "easeInOut" }}
       />
 
-      <motion.svg
+      <svg
         viewBox="0 0 480 620"
         preserveAspectRatio="xMidYMid slice"
         className="absolute inset-0 size-full"
-        style={{ x: fieldX, y: fieldY }}
       >
         {RINGS.map((r, i) => (
           <motion.g
@@ -134,7 +101,7 @@ export function OrbitalField({
         ))}
         {/* The focus — a still, bright core the whole system turns around. */}
         <circle cx={FX} cy={FY} r={2.4} fill="rgba(255,255,255,0.9)" />
-      </motion.svg>
+      </svg>
     </div>
   );
 }
