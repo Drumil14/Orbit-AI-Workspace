@@ -69,6 +69,9 @@ export default function LoginPage() {
     e.preventDefault();
     if (submitting) return;
     setSubmitting(true);
+    // Demo session — a plain session cookie the proxy gate reads. No expiry, so
+    // closing the browser drops it and the next visit starts at login again.
+    document.cookie = "orbit_session=1; path=/; SameSite=Lax";
     window.setTimeout(() => router.push("/"), reduce ? 0 : 560);
   }
 

@@ -82,6 +82,7 @@ export function UserMenu({ user }: { user: User }) {
         <DropdownMenuItem
           variant="destructive"
           onClick={() => {
+            document.cookie = "orbit_session=; path=/; Max-Age=0; SameSite=Lax";
             toast.success("Signed out");
             router.push("/login");
           }}
