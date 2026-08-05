@@ -4,8 +4,10 @@ import type { LucideIcon } from "lucide-react";
 import { ClipboardList, FileText, Shapes, Table2 } from "lucide-react";
 import { Mark } from "@/components/common/mark";
 import { UserAvatar } from "@/components/common/user-avatar";
+import { accentMark } from "@/lib/accent";
 import { getPerson } from "@/lib/data/people";
 import { relativeTime } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import type { AccentHue, DocKind, DocumentItem } from "@/types";
 
 const kindIcon: Record<DocKind, LucideIcon> = {
@@ -13,6 +15,15 @@ const kindIcon: Record<DocKind, LucideIcon> = {
   spec: ClipboardList,
   design: Shapes,
   sheet: Table2,
+};
+
+/** Each document kind gets its own tint, so the library scans by type at a
+ * glance (Notion's colored page icons) instead of a wall of grey chips. */
+const kindHue: Record<DocKind, AccentHue> = {
+  doc: "sky",
+  spec: "amber",
+  design: "rose",
+  sheet: "emerald",
 };
 
 /** Optional project context — shown only in the cross-project library. */
@@ -38,8 +49,13 @@ export function DocumentCard({
       className="group flex h-full w-full flex-col rounded-xl border border-border/70 bg-card p-5 text-left shadow-xs transition-[transform,box-shadow,border-color] duration-200 ease-out outline-none hover:-translate-y-0.5 hover:border-border hover:shadow-md focus-visible:ring-3 focus-visible:ring-ring/50"
     >
       <div className="flex items-center justify-between gap-2">
-        <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-secondary text-muted-foreground">
-          <Icon className="size-4" />
+        <span
+          className={cn(
+            "grid size-9 shrink-0 place-items-center rounded-lg ring-1 ring-black/[0.04] ring-inset transition-transform duration-200 ease-out group-hover:scale-105 dark:ring-white/[0.06]",
+            accentMark[kindHue[doc.kind]],
+          )}
+        >
+          <Icon className="size-[18px]" />
         </span>
         {project && (
           <span className="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">

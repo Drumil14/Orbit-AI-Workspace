@@ -25,7 +25,33 @@ export const ease = {
 export const transition = {
   base: { duration: duration.base, ease: ease.out } satisfies Transition,
   sidebar: { duration: duration.slow, ease: ease.inOut } satisfies Transition,
+  /** Crisp spring for shared-element travel and press feedback — reads as
+   * physical, not timed. Tuned to settle fast with almost no overshoot. */
+  spring: {
+    type: "spring",
+    stiffness: 420,
+    damping: 34,
+    mass: 0.8,
+  } satisfies Transition,
+  /** Softer spring for larger layout moves (list reordering, cards settling). */
+  springSoft: {
+    type: "spring",
+    stiffness: 260,
+    damping: 30,
+    mass: 0.9,
+  } satisfies Transition,
 } as const;
+
+/**
+ * A quick keyframe "pop" (scale up, then settle) for completion feedback.
+ * Springs can't drive 3-keyframe arrays like `[1, 1.28, 1]`, so this is an
+ * explicit tween — use it wherever an element bounces once on a state change.
+ */
+export const popTransition: Transition = {
+  duration: 0.42,
+  ease: ease.out,
+  times: [0, 0.45, 1],
+};
 
 /** Fade + rise, used for staggered section reveals. */
 export const fadeInUp: Variants = {

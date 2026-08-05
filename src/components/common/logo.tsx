@@ -1,6 +1,12 @@
 import { cn } from "@/lib/utils";
 
-/** The Orbit mark: a tilted orbital path, a core, and a satellite mid-motion. */
+/**
+ * The Orbit mark — an open, foreshortened orbit that breaks into a launch
+ * tangent at its apoapsis: a body swinging round and flinging off along its
+ * path. One continuous stroke, drawn on a 24 grid with rounded terminals, so it
+ * holds up from 16px favicon to loading screen. Inherits `currentColor`, so it
+ * takes the accent or the ink of wherever it sits.
+ */
 export function OrbitMark({ className }: { className?: string }) {
   return (
     <svg
@@ -9,17 +15,13 @@ export function OrbitMark({ className }: { className?: string }) {
       aria-hidden
       className={cn("size-4", className)}
     >
-      <ellipse
-        cx="12"
-        cy="12"
-        rx="10"
-        ry="4.75"
-        transform="rotate(-28 12 12)"
-        className="stroke-current opacity-55"
-        strokeWidth="1.5"
+      <path
+        d="M16.9 6.3 A8.6 5.1 -26 1 1 15 5.3 L 20.6 3.1"
+        className="stroke-current"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
-      <circle cx="12" cy="12" r="2.75" className="fill-current" />
-      <circle cx="20" cy="7.6" r="1.7" className="fill-current" />
     </svg>
   );
 }
@@ -29,15 +31,17 @@ interface LogoProps {
   className?: string;
 }
 
-/** Brand lockup — accented mark plus optional wordmark. */
+/**
+ * Brand lockup — the bare mark beside the wordmark, no containing tile. The
+ * mark carries the identity on its own; boxing it in a rounded square is what
+ * made it read as a generic app icon.
+ */
 export function Logo({ withWordmark = true, className }: LogoProps) {
   return (
-    <span className={cn("inline-flex items-center gap-2", className)}>
-      <span className="grid size-7 shrink-0 place-items-center rounded-md bg-primary text-primary-foreground shadow-xs">
-        <OrbitMark className="size-[18px]" />
-      </span>
+    <span className={cn("inline-flex items-center gap-2.5", className)}>
+      <OrbitMark className="size-6 shrink-0 text-foreground" />
       {withWordmark && (
-        <span className="text-[14px] font-semibold tracking-tight text-foreground">
+        <span className="text-[15px] font-semibold tracking-[-0.01em] text-foreground">
           Orbit
         </span>
       )}

@@ -118,7 +118,7 @@ export function ProjectHero({ project }: { project: ProjectDetail }) {
                 suffix="%"
                 className="tabular block font-medium"
               />
-              <ProgressBar value={project.progress} />
+              <ProgressBar value={project.progress} hue={project.hue} />
             </div>
           </Prop>
           <Prop label="Due">

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ChevronsUpDown, Command, LogOut, Settings, UserRound } from "lucide-react";
 import { toast } from "sonner";
 import { PersonGlyph } from "@/components/common/person-glyph";
@@ -20,6 +21,7 @@ import type { User } from "@/types";
 
 export function UserMenu({ user }: { user: User }) {
   const { setCommandOpen } = useShell();
+  const router = useRouter();
 
   return (
     <DropdownMenu>
@@ -79,7 +81,10 @@ export function UserMenu({ user }: { user: User }) {
         <DropdownMenuSeparator />
         <DropdownMenuItem
           variant="destructive"
-          onClick={() => toast.success("Signed out")}
+          onClick={() => {
+            toast.success("Signed out");
+            router.push("/login");
+          }}
         >
           <LogOut className="size-4" />
           Log out

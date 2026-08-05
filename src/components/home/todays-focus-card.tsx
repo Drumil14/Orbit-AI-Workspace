@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { Check } from "lucide-react";
 import {
   Card,
@@ -12,6 +13,7 @@ import {
 import { StatusDot } from "@/components/common/status-dot";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useFocusTasks } from "@/hooks/use-home";
+import { popTransition, transition } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import type { StatusTone, TaskPriority } from "@/types";
 
@@ -62,54 +64,83 @@ export function TodaysFocusCard() {
           </ul>
         ) : (
           <ul className="flex flex-col gap-0.5">
-            {data.map((task) => {
-              const isDone = !!done[task.id];
-              return (
-                <li key={task.id}>
-                  <button
-                    type="button"
-                    aria-pressed={isDone}
-                    onClick={() =>
-                      setDone((prev) => ({ ...prev, [task.id]: !prev[task.id] }))
-                    }
-                    className="group flex w-full items-center gap-3 rounded-lg px-2 py-3 text-left transition-colors outline-none hover:bg-accent focus-visible:ring-3 focus-visible:ring-ring/50"
-                  >
-                    <span
-                      className={cn(
-                        "grid size-5 shrink-0 place-items-center rounded-full border transition-colors",
-                        isDone
-                          ? "border-primary bg-primary text-primary-foreground"
-                          : "border-border text-transparent group-hover:border-muted-foreground",
-                      )}
+            <AnimatePresence initial={false}>
+              {[...data]
+                .sort(
+                  (a, b) => Number(!!done[a.id]) - Number(!!done[b.id]),
+                )
+                .map((task) => {
+                  const isDone = !!done[task.id];
+                  return (
+                    <motion.li
+                      key={task.id}
+                      layout
+                      transition={transition.springSoft}
                     >
-                      <Check className="size-3" strokeWidth={2.5} />
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span
-                        className={cn(
-                          "block truncate text-sm text-foreground transition-colors",
-                          isDone && "text-muted-foreground line-through",
-                        )}
+                      <button
+                        type="button"
+                        aria-pressed={isDone}
+                        onClick={() =>
+                          setDone((prev) => ({
+                            ...prev,
+                            [task.id]: !prev[task.id],
+                          }))
+                        }
+                        className="group flex w-full items-center gap-3 rounded-lg px-2 py-3 text-left transition-colors outline-none hover:bg-accent focus-visible:ring-3 focus-visible:ring-ring/50 active:bg-accent/70"
                       >
-                        {task.title}
-                      </span>
-                      <span className="block truncate text-xs text-muted-foreground">
-                        {task.projectName}
-                      </span>
-                    </span>
-                    <span className="flex shrink-0 items-center gap-1.5">
-                      <StatusDot
-                        tone={priorityTone[task.priority]}
-                        label={`${task.priority} priority`}
-                      />
-                      <span className="tabular text-xs text-muted-foreground">
-                        {task.due}
-                      </span>
-                    </span>
-                  </button>
-                </li>
-              );
-            })}
+                        <motion.span
+                          initial={false}
+                          animate={{ scale: isDone ? [1, 1.28, 1] : 1 }}
+                          transition={isDone ? popTransition : transition.spring}
+                          whileTap={{ scale: 0.82 }}
+                          className={cn(
+                            "grid size-5 shrink-0 place-items-center rounded-full border transition-colors",
+                            isDone
+                              ? "border-primary bg-primary text-primary-foreground"
+                              : "border-border text-transparent group-hover:border-muted-foreground",
+                          )}
+                        >
+                          <Check className="size-3" strokeWidth={2.5} />
+                        </motion.span>
+                        <span className="min-w-0 flex-1">
+                          <span className="relative inline-block max-w-full truncate align-bottom">
+                            <span
+                              className={cn(
+                                "block truncate text-sm transition-colors duration-300",
+                                isDone
+                                  ? "text-muted-foreground"
+                                  : "text-foreground",
+                              )}
+                            >
+                              {task.title}
+                            </span>
+                            {/* Strike that draws across the label on completion. */}
+                            <motion.span
+                              aria-hidden
+                              initial={false}
+                              animate={{ scaleX: isDone ? 1 : 0 }}
+                              transition={transition.spring}
+                              className="absolute inset-x-0 top-1/2 h-px origin-left bg-muted-foreground/70"
+                            />
+                          </span>
+                          <span className="block truncate text-xs text-muted-foreground">
+                            {task.projectName}
+                          </span>
+                        </span>
+                        <span className="flex shrink-0 items-center gap-1.5">
+                          <StatusDot
+                            tone={priorityTone[task.priority]}
+                            label={`${task.priority} priority`}
+                          />
+                          <span className="tabular text-xs text-muted-foreground">
+                            {task.due}
+                          </span>
+                        </span>
+                      </button>
+                    </motion.li>
+                  );
+                })}
+            </AnimatePresence>
           </ul>
         )}
       </CardContent>
