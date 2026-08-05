@@ -2,14 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import {
-  AnimatePresence,
-  motion,
-  useMotionValue,
-  useReducedMotion,
-  useSpring,
-  useTransform,
-} from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   ArrowRight,
   Eye,
@@ -46,25 +39,6 @@ export default function LoginPage() {
 
   const isSignup = mode === "signup";
 
-  // Pointer parallax for the brand panel's depth layers.
-  const mx = useMotionValue(0);
-  const my = useMotionValue(0);
-  const px = useSpring(mx, { stiffness: 120, damping: 22, mass: 0.5 });
-  const py = useSpring(my, { stiffness: 120, damping: 22, mass: 0.5 });
-  const contentX = useTransform(px, (v) => v * 0.35);
-  const contentY = useTransform(py, (v) => v * 0.35);
-
-  function trackPointer(e: React.MouseEvent<HTMLElement>) {
-    if (reduce) return;
-    const r = e.currentTarget.getBoundingClientRect();
-    mx.set(((e.clientX - r.left) / r.width - 0.5) * 26);
-    my.set(((e.clientY - r.top) / r.height - 0.5) * 26);
-  }
-  function resetPointer() {
-    mx.set(0);
-    my.set(0);
-  }
-
   function enterWorkspace(e: FormEvent) {
     e.preventDefault();
     if (submitting) return;
@@ -78,12 +52,8 @@ export default function LoginPage() {
   return (
     <div className="grid min-h-dvh lg:grid-cols-[1.08fr_1fr]">
       {/* ── Brand panel — always dark, cinematic, alive ───────────────────── */}
-      <aside
-        onMouseMove={trackPointer}
-        onMouseLeave={resetPointer}
-        className="dark relative hidden overflow-hidden bg-[#0a0a0f] text-foreground lg:flex"
-      >
-        <OrbitalField px={px} py={py} />
+      <aside className="dark relative hidden overflow-hidden bg-[#0a0a0f] text-foreground lg:flex">
+        <OrbitalField />
         {/* Grounding gradients: lift the top-left where the logo sits, and sink
             the bottom where the headline lands, so text always has contrast. */}
         <div
@@ -95,10 +65,7 @@ export default function LoginPage() {
           }}
         />
 
-        <motion.div
-          style={{ x: contentX, y: contentY }}
-          className="relative z-10 flex flex-1 flex-col justify-between p-12 xl:p-16"
-        >
+        <div className="relative z-10 flex flex-1 flex-col justify-between p-12 xl:p-16">
           <motion.div
             initial={reduce ? false : { opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
@@ -112,9 +79,8 @@ export default function LoginPage() {
               initial={reduce ? false : { opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, ease, delay: 0.15 }}
-              className="mb-5 flex items-center gap-2 text-xs font-medium tracking-[0.2em] text-white/45 uppercase"
+              className="mb-5 text-xs font-medium tracking-[0.2em] text-white/45 uppercase"
             >
-              <span className="size-1.5 rounded-full bg-[#8b90f2]" />
               Workspace OS
             </motion.p>
             <motion.h1
@@ -141,13 +107,12 @@ export default function LoginPage() {
               transition={{ duration: 0.8, ease, delay: 0.5 }}
               className="mt-10 flex items-center gap-2 border-t border-white/10 pt-6 text-xs text-white/35"
             >
-              <span className="size-1.5 rounded-full bg-emerald-400/80" />
               All systems in orbit
               <span className="mx-1 text-white/15">·</span>©{" "}
               {new Date().getFullYear()} Orbit
             </motion.div>
           </div>
-        </motion.div>
+        </div>
       </aside>
 
       {/* ── Auth column ───────────────────────────────────────────────────── */}
@@ -165,9 +130,14 @@ export default function LoginPage() {
             className="w-full max-w-[23rem]"
           >
             <div className="mb-8">
-              <span className="mb-4 inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-muted/40 px-2.5 py-1 text-xs font-medium text-muted-foreground">
-                <span className="size-1.5 rounded-full bg-primary" />
-                Demo · no password needed
+              <span className="mb-4 flex items-center gap-2 font-mono text-[11px] tracking-wide">
+                <span className="font-semibold text-primary uppercase [letter-spacing:0.18em]">
+                  Demo
+                </span>
+                <span className="text-muted-foreground/40">·</span>
+                <span className="text-muted-foreground">
+                  any email, any password, or neither
+                </span>
               </span>
               <h2 className="text-[1.7rem] leading-tight font-semibold tracking-[-0.02em] text-foreground">
                 {isSignup ? "Create your account" : "Welcome back"}
