@@ -49,7 +49,7 @@ export function SidebarNav() {
               {active && (
                 <motion.span
                   layoutId="sidebar-active-item"
-                  transition={transition.base}
+                  transition={transition.spring}
                   className="absolute inset-0 -z-10 rounded-lg bg-card shadow-sm ring-1 ring-border/60"
                 />
               )}

@@ -1,13 +1,16 @@
 "use client";
 
 import { ArrowRight } from "lucide-react";
+import { format } from "date-fns";
 import { toast } from "sonner";
 import { Card, CardEyebrow } from "@/components/common/card";
 import { Mark } from "@/components/common/mark";
 import { SpecularCTA } from "@/components/common/specular-cta";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useContinueWorking } from "@/hooks/use-home";
-import { atmosphere } from "@/lib/accent";
+import { useMounted } from "@/hooks/use-mounted";
+import { accentBar, atmosphere } from "@/lib/accent";
+import { cn } from "@/lib/utils";
 
 /**
  * The Home masthead — the page's one dominant surface.
@@ -15,8 +18,9 @@ import { atmosphere } from "@/lib/accent";
  * It fuses the greeting with "continue working" so the top of Home reads as a
  * single designed moment, not a header stacked above a card. The panel breathes
  * a faint share of the resumed project's atmosphere (its hue washes in from the
- * top-right), and the task title is the largest type on the page — everything
- * below is deliberately quieter.
+ * top-right), the live date anchors the greeting's counterweight, and the task
+ * title is the largest type on the page — everything below is deliberately
+ * quieter.
  */
 export function HomeHero({
   greeting,
@@ -26,7 +30,9 @@ export function HomeHero({
   firstName: string;
 }) {
   const { data, isPending } = useContinueWorking();
+  const mounted = useMounted();
   const hue = data?.projectHue ?? "indigo";
+  const now = new Date();
 
   return (
     <Card className="relative overflow-hidden rounded-3xl p-6 sm:p-8">
@@ -40,13 +46,30 @@ export function HomeHero({
       />
 
       <div className="relative">
-        <div className="max-w-xl">
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-[1.75rem]">
-            {greeting}, {firstName}
-          </h1>
-          <p className="mt-2 text-sm text-muted-foreground sm:text-[0.875rem]">
-            Everything moving in your space, in one calm view.
-          </p>
+        <div className="flex items-start justify-between gap-4">
+          <div className="max-w-xl">
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-[1.75rem]">
+              {greeting}, {firstName}
+            </h1>
+            <p className="mt-2 text-sm text-muted-foreground sm:text-[0.875rem]">
+              Everything moving in your space, in one calm view.
+            </p>
+          </div>
+
+          {/* Live date — real, glanceable context that balances the masthead.
+              Mount-gated so the server and client render the same first paint. */}
+          <div className="hidden shrink-0 pt-1 text-right sm:block">
+            {mounted && (
+              <>
+                <p className="text-sm font-medium tracking-tight text-foreground">
+                  {format(now, "EEEE")}
+                </p>
+                <p className="tabular mt-0.5 text-xs text-muted-foreground">
+                  {format(now, "MMMM d")}
+                </p>
+              </>
+            )}
+          </div>
         </div>
 
         <div className="mt-7 flex flex-col gap-5 border-t border-border/50 pt-6 sm:mt-9 sm:flex-row sm:items-center sm:justify-between">
@@ -62,7 +85,13 @@ export function HomeHero({
             )}
 
             <div className="min-w-0 space-y-1.5">
-              <CardEyebrow>Continue working</CardEyebrow>
+              <div className="flex items-center gap-1.5">
+                <span
+                  className={cn("size-1.5 rounded-full", accentBar[hue])}
+                  aria-hidden
+                />
+                <CardEyebrow>Continue working</CardEyebrow>
+              </div>
               {isPending || !data ? (
                 <div className="space-y-2 py-0.5">
                   <Skeleton className="h-6 w-64" />

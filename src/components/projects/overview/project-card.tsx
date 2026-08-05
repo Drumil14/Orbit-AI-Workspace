@@ -60,6 +60,7 @@ export function ProjectCard({ project }: { project: Project }) {
           </div>
           <ProgressBar
             value={project.progress}
+            hue={project.hue}
             aria-label={`${project.progress}% complete`}
           />
         </div>

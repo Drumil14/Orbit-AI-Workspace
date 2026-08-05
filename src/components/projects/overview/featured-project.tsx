@@ -102,6 +102,7 @@ export function FeaturedProject({
               </div>
               <ProgressBar
                 value={project.progress}
+                hue={project.hue}
                 className="h-1.5"
                 aria-label={`${project.progress}% complete`}
               />

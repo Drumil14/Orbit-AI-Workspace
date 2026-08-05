@@ -5,6 +5,7 @@ import { Check } from "lucide-react";
 import { StatusDot } from "@/components/common/status-dot";
 import { UserAvatar } from "@/components/common/user-avatar";
 import { getPerson } from "@/lib/data/people";
+import { popTransition, transition } from "@/lib/motion";
 import { priorityMeta } from "@/lib/project-meta";
 import { cn } from "@/lib/utils";
 import type { Task, TaskStatus } from "@/types";
@@ -34,8 +35,10 @@ export function TaskRow({ task, onToggle }: { task: Task; onToggle: () => void }
         onClick={onToggle}
         aria-pressed={isDone}
         aria-label={isDone ? "Mark incomplete" : "Mark complete"}
-        whileTap={{ scale: 0.86 }}
-        transition={{ duration: 0.15 }}
+        initial={false}
+        animate={{ scale: isDone ? [1, 1.28, 1] : 1 }}
+        whileTap={{ scale: 0.82 }}
+        transition={isDone ? popTransition : transition.spring}
         className={cn(
           "grid size-[18px] shrink-0 place-items-center rounded-full border transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
           isDone
@@ -53,13 +56,23 @@ export function TaskRow({ task, onToggle }: { task: Task; onToggle: () => void }
       </motion.button>
 
       <span className="min-w-0 flex-1">
-        <span
-          className={cn(
-            "block truncate text-sm text-foreground",
-            isDone && "text-muted-foreground line-through",
-          )}
-        >
-          {task.title}
+        <span className="relative inline-block max-w-full truncate align-bottom">
+          <span
+            className={cn(
+              "block truncate text-sm transition-colors duration-300",
+              isDone ? "text-muted-foreground" : "text-foreground",
+            )}
+          >
+            {task.title}
+          </span>
+          {/* Strike that draws across the label on completion. */}
+          <motion.span
+            aria-hidden
+            initial={false}
+            animate={{ scaleX: isDone ? 1 : 0 }}
+            transition={transition.spring}
+            className="absolute inset-x-0 top-1/2 h-px origin-left bg-muted-foreground/70"
+          />
         </span>
         {state && !isDone && (
           <span className="block text-xs text-muted-foreground">{state}</span>

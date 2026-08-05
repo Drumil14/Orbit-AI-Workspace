@@ -8,6 +8,7 @@ import {
   CardTitle,
 } from "@/components/common/card";
 import { Mark } from "@/components/common/mark";
+import { ProgressBar } from "@/components/common/progress-bar";
 import { StatusDot } from "@/components/common/status-dot";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePinnedProjects } from "@/hooks/use-home";
@@ -58,12 +59,12 @@ export function PinnedProjectsCard() {
                         {project.name}
                       </span>
                       <div className="mt-1.5 flex items-center gap-2">
-                        <span className="h-1 flex-1 overflow-hidden rounded-full bg-muted">
-                          <span
-                            className="block h-full rounded-full bg-primary/60"
-                            style={{ width: `${project.progress}%` }}
-                          />
-                        </span>
+                        <ProgressBar
+                          value={project.progress}
+                          hue={project.hue}
+                          className="h-1.5 flex-1"
+                          aria-label={`${project.name} ${project.progress}% complete`}
+                        />
                         <span className="tabular w-8 text-right text-xs text-muted-foreground">
                           {project.progress}%
                         </span>

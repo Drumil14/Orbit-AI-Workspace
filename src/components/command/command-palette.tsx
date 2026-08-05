@@ -32,21 +32,34 @@ interface RowProps {
   subtitle?: string;
   /** A chord like "G P" shown at the trailing edge. */
   shortcut?: string;
+  /** The verb shown on the highlighted row when there is no chord. */
+  action?: string;
+  /** Search text cmdk matches against; also keeps the row's identity stable. */
   value?: string;
   onSelect: () => void;
 }
 
 /**
- * One palette row. The icon sits in a well that warms to the accent on
- * selection; the trailing edge shows a chord when there is one, otherwise a
- * quiet return glyph that only appears on the highlighted row.
+ * One palette row. The highlighted row lifts onto an accent surface with a soft
+ * ring, the icon well warms to the accent, and the trailing edge shows a chord
+ * — or, on the active row, the verb for what Enter will do (Raycast's "what
+ * happens next" cue).
  */
-function Row({ leading, icon: Icon, title, subtitle, shortcut, value, onSelect }: RowProps) {
+function Row({
+  leading,
+  icon: Icon,
+  title,
+  subtitle,
+  shortcut,
+  action = "Open",
+  value,
+  onSelect,
+}: RowProps) {
   return (
     <Command.Item
       value={value}
       onSelect={onSelect}
-      className="group flex cursor-pointer items-center gap-3 rounded-xl px-2.5 py-2 outline-none transition-colors data-[selected=true]:bg-accent"
+      className="group flex cursor-pointer items-center gap-3 rounded-xl px-2.5 py-2 outline-none transition-colors data-[selected=true]:bg-accent data-[selected=true]:ring-1 data-[selected=true]:ring-border/50"
     >
       <span className="grid size-8 shrink-0 place-items-center">
         {leading ?? (
@@ -70,9 +83,12 @@ function Row({ leading, icon: Icon, title, subtitle, shortcut, value, onSelect }
       {shortcut ? (
         <KbdSequence keys={shortcut} className="opacity-80" />
       ) : (
-        <Kbd className="opacity-0 transition-opacity group-data-[selected=true]:opacity-100">
-          ↵
-        </Kbd>
+        <span className="flex items-center gap-1.5 opacity-0 transition-opacity group-data-[selected=true]:opacity-100">
+          <span className="text-[11px] font-medium text-muted-foreground">
+            {action}
+          </span>
+          <Kbd>↵</Kbd>
+        </span>
       )}
     </Command.Item>
   );
@@ -118,12 +134,14 @@ export function CommandPalette() {
               icon={icon}
               title={label}
               shortcut={shortcut}
+              action="Jump to"
               onSelect={() => run(() => router.push(href))}
             />
           ))}
           <Row
             icon={Settings}
             title="Settings"
+            action="Jump to"
             value="settings preferences"
             onSelect={() => run(() => router.push("/settings"))}
           />
@@ -137,6 +155,7 @@ export function CommandPalette() {
               leading={<Mark seed={project.name} hue={project.hue} size="md" />}
               title={project.name}
               subtitle={projectStatusMeta[project.status].label}
+              action="Open"
               onSelect={() => run(() => router.push(`/projects/${project.slug}`))}
             />
           ))}
@@ -148,18 +167,21 @@ export function CommandPalette() {
             title="New task"
             subtitle="Add a task to any project"
             value="new task create"
+            action="Run"
             onSelect={() => run(() => toast("New task"))}
           />
           <Row
             icon={PanelLeft}
             title="Toggle sidebar"
             value="toggle sidebar"
+            action="Run"
             onSelect={() => run(toggleCollapsed)}
           />
           <Row
             icon={PanelRight}
             title="Toggle agenda"
             value="toggle agenda panel"
+            action="Run"
             onSelect={() => run(toggleAgenda)}
           />
         </Command.Group>
@@ -169,18 +191,21 @@ export function CommandPalette() {
             icon={Sun}
             title="Light theme"
             value="theme light appearance"
+            action="Apply"
             onSelect={() => run(() => setTheme("light"))}
           />
           <Row
             icon={Moon}
             title="Dark theme"
             value="theme dark appearance"
+            action="Apply"
             onSelect={() => run(() => setTheme("dark"))}
           />
           <Row
             icon={Monitor}
             title="System theme"
             value="theme system appearance"
+            action="Apply"
             onSelect={() => run(() => setTheme("system"))}
           />
         </Command.Group>
