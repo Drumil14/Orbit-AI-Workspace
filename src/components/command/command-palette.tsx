@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { Command } from "cmdk";
+import { Command, defaultFilter } from "cmdk";
 import { useTheme } from "next-themes";
 import {
   type LucideIcon,
@@ -23,6 +23,21 @@ import { useShell } from "@/components/layout/shell-provider";
 import { projects } from "@/lib/data/seed";
 import { primaryNav } from "@/lib/navigation";
 import { projectStatusMeta } from "@/lib/status";
+
+/**
+ * cmdk's default fuzzy scorer returns a *tiny* non-zero score for very loose
+ * subsequence matches — e.g. "billing" scores ~0.0003 against "Mobile App
+ * Redesign" — and the palette renders anything scoring above zero, so noise
+ * leaks in. We keep cmdk's ranking but floor out near-zero matches. Genuine
+ * matches score ~0.1 and up (a substring like "design" in "Redesign" ≈ 0.17,
+ * a name match ≈ 0.99), so this floor sits comfortably between signal and noise.
+ */
+const RELEVANCE_FLOOR = 0.01;
+
+function relevanceFilter(value: string, search: string, keywords?: string[]) {
+  const score = defaultFilter(value, search, keywords);
+  return score >= RELEVANCE_FLOOR ? score : 0;
+}
 
 interface RowProps {
   /** A pre-styled leading node (e.g. a project Mark). Takes precedence over `icon`. */
@@ -109,6 +124,7 @@ export function CommandPalette() {
     <Command.Dialog
       open={commandOpen}
       onOpenChange={setCommandOpen}
+      filter={relevanceFilter}
       label="Command menu"
       overlayClassName="fixed inset-0 z-50 bg-foreground/25 backdrop-blur-sm data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0"
       contentClassName="fixed top-[14%] left-1/2 z-50 w-[92vw] max-w-xl -translate-x-1/2 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=open]:duration-150"
