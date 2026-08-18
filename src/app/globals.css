@@ -308,6 +308,43 @@
   );
 }
 
+/* Loading shimmer ───────────────────────────────────────────────────────────
+ * A light sweep travels across skeleton surfaces so a pending state reads as
+ * "loading," not "broken" — calmer than a bare opacity pulse. The band is a low
+ * share of --foreground, so it darkens gently over light surfaces and lightens
+ * over dark ones (works in both themes), and it's clipped to each skeleton's own
+ * radius via overflow. Honors reduced-motion. */
+@keyframes orbit-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.orbit-skeleton {
+  position: relative;
+  overflow: hidden;
+}
+
+.orbit-skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in oklab, var(--foreground) 7%, transparent) 50%,
+    transparent 100%
+  );
+  animation: orbit-shimmer 1.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .orbit-skeleton::after {
+    animation: none;
+  }
+}
+
 /* Chrome panels (sidebar, agenda rail) carry an even fainter share. */
 .ambient-panel {
   background-color: color-mix(in oklab, var(--ambient) 3%, var(--sidebar));
