@@ -12,6 +12,7 @@ import { ProgressBar } from "@/components/common/progress-bar";
 import { SpecularCTA } from "@/components/common/specular-cta";
 import { StatusBadge } from "@/components/common/status-badge";
 import { StatusDot } from "@/components/common/status-dot";
+import { useTaskActions } from "@/components/tasks/task-actions-provider";
 import { Button } from "@/components/ui/button";
 import { getPeople } from "@/lib/data/people";
 import { dueLabel } from "@/lib/format";
@@ -57,6 +58,7 @@ export function ProjectHero({ project }: { project: ProjectDetail }) {
   const team = getPeople(project.memberIds);
   const priority = priorityMeta[project.priority];
   const due = dueLabel(project.dueDate);
+  const { openCreate } = useTaskActions();
 
   return (
     <header className="border-b border-border/70 pb-6">
@@ -80,11 +82,11 @@ export function ProjectHero({ project }: { project: ProjectDetail }) {
           </Button>
           <SpecularCTA onClick={() => toast("Share link copied")}>
             <Share2 className="size-4" />
-            Share
+            <span className="hidden sm:inline">Share</span>
           </SpecularCTA>
-          <SpecularCTA onClick={() => toast("New task")}>
+          <SpecularCTA onClick={() => openCreate(project.slug)}>
             <Plus className="size-4" />
-            New task
+            <span className="hidden sm:inline">New task</span>
           </SpecularCTA>
         </div>
       </div>

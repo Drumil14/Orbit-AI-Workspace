@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import SpotlightCard from "@/components/SpotlightCard";
 import { CardEyebrow } from "@/components/common/card";
+import { InlineError } from "@/components/common/inline-error";
 import { InsightStat } from "@/components/common/insight-stat";
 import { Mark } from "@/components/common/mark";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -25,7 +26,7 @@ import { useHomeBrief } from "@/hooks/use-home";
  * chief of staff, not a dashboard of numbers.
  */
 export function HomeBrief() {
-  const { data: brief, isPending } = useHomeBrief();
+  const { data: brief, isPending, isError, refetch } = useHomeBrief();
 
   return (
     <SpotlightCard
@@ -48,6 +49,10 @@ export function HomeBrief() {
           </div>
         </div>
 
+        {isError ? (
+          <InlineError message="Couldn't load your brief." onRetry={refetch} />
+        ) : (
+          <>
         {isPending || !brief ? (
           <div className="mt-5 space-y-2.5">
             <Skeleton className="h-5 w-full max-w-xl" />
@@ -143,6 +148,8 @@ export function HomeBrief() {
               </span>
             </Link>
           )
+        )}
+          </>
         )}
       </div>
     </SpotlightCard>

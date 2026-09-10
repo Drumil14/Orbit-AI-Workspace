@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { primaryNav } from "@/lib/navigation";
-import { staggerChildren, transition } from "@/lib/motion";
+import { transition } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
 /** True when `href` is the active route (exact for "/", prefix otherwise). */
@@ -12,29 +12,29 @@ function isActive(pathname: string, href: string): boolean {
   return href === "/" ? pathname === "/" : pathname.startsWith(href);
 }
 
-/** Each item eases in from the left on mount — a quiet "labels fade in". */
-const itemVariants = {
-  hidden: { opacity: 0, x: -6 },
-  show: { opacity: 1, x: 0, transition: transition.base },
-};
-
+/**
+ * Primary nav. This is shell chrome the server already knows — it must be
+ * visible on first paint, so the "labels ease in from the left" entrance runs
+ * as a CSS animation (plays immediately, never waits for hydration) rather than
+ * a JS/Framer opacity gate that would leave the nav blank until React boots.
+ * The resting state is fully visible, so a slow/failed hydration can never
+ * render a half-empty sidebar.
+ */
 export function SidebarNav() {
   const pathname = usePathname();
 
   return (
-    <motion.nav
-      aria-label="Primary"
-      className="flex flex-col gap-0.5"
-      initial="hidden"
-      animate="show"
-      variants={staggerChildren(0.05)}
-    >
-      {primaryNav.map((item) => {
+    <nav aria-label="Primary" className="flex flex-col gap-0.5">
+      {primaryNav.map((item, index) => {
         const active = isActive(pathname, item.href);
         const Icon = item.icon;
 
         return (
-          <motion.div key={item.href} variants={itemVariants}>
+          <div
+            key={item.href}
+            className="animate-in fade-in slide-in-from-left-1 fill-mode-both duration-200 ease-out"
+            style={{ animationDelay: `${index * 40}ms` }}
+          >
             <Link
               href={item.href}
               aria-current={active ? "page" : undefined}
@@ -68,9 +68,9 @@ export function SidebarNav() {
                 </span>
               ) : null}
             </Link>
-          </motion.div>
+          </div>
         );
       })}
-    </motion.nav>
+    </nav>
   );
 }

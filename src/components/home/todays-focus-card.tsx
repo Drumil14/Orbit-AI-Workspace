@@ -10,6 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/common/card";
+import { InlineError } from "@/components/common/inline-error";
 import { StatusDot } from "@/components/common/status-dot";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useFocusTasks } from "@/hooks/use-home";
@@ -24,7 +25,7 @@ const priorityTone: Record<TaskPriority, StatusTone> = {
 };
 
 export function TodaysFocusCard() {
-  const { data, isPending } = useFocusTasks();
+  const { data, isPending, isError, refetch } = useFocusTasks();
   const [done, setDone] = useState<Record<string, boolean>>({});
 
   const remaining = data?.filter((task) => !done[task.id]).length ?? 0;
@@ -50,7 +51,9 @@ export function TodaysFocusCard() {
       </CardHeader>
 
       <CardContent className="pt-1">
-        {isPending || !data ? (
+        {isError ? (
+          <InlineError message="Couldn't load your focus." onRetry={refetch} />
+        ) : isPending || !data ? (
           <ul className="flex flex-col gap-1">
             {[0, 1, 2].map((i) => (
               <li key={i} className="flex items-center gap-3 px-2 py-3">

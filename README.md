@@ -68,16 +68,40 @@ It is a demo, so authentication is presence-of-a-cookie only. Any email and pass
 
 ---
 
+## What's built (and what isn't)
+
+Orbit is a front-end with a **browser-local persistence layer** — every write survives a refresh, but there is no server, so nothing is shared across devices.
+
+### Implemented
+
+- **Tasks — full CRUD.** A detail **drawer** (edit status, assignee, priority, due date, description; delete), a **Quick Create** modal, and a drag-and-drop **status board** (List ⇄ Board toggle) where dragging a card changes its status.
+- **Documents — full CRUD.** A viewer/editor drawer with a **rich Markdown editor** (formatting toolbar: headings, bold/italic/code, lists, checklists, quotes) rendered live, plus a create dialog. The card grid opens the viewer.
+- **Calendar — drag interactions.** Drag an empty slot to **create**, drag an event to **move**, drag its edges to **resize** (15-minute snap), with an event editor (title, type, delete).
+- **⌘K command palette.** Fuzzy search across **tasks, documents, and projects**; jump to any screen; run quick actions and theme changes.
+- **Notifications.** A real unread cursor seeded from the activity feed and appended to as you create/complete things; "mark all read" works.
+- **Persistence.** All writes go through the data seam into small `localStorage`-backed stores (`src/lib/data/*-store.ts`) and survive a refresh.
+- **Polish.** Loading skeletons, empty states, and error/retry across fetching views; light + dark themes; keyboard shortcuts (`⌘K`, `⌘B`, `⌘J`, `g` then `h/p/t/d/c`); visible focus states; ARIA on icon buttons; responsive shell.
+
+### Intentionally not built
+
+- **Real backend & real auth.** Data is in-memory seed layered with `localStorage`; auth is a demo cookie gate. The seam is designed so a real API drops in with near-zero component changes.
+- **Real-time presence / collaboration.** No sync server, so there are no live "who's here" indicators and no multi-device sharing (persistence is per-browser).
+- **A few extra ⌘K commands** beyond search/navigate/quick-actions (e.g. inline "assign to…", "set status…").
+- **AI summaries are clearly-labeled sample content**, not a live model call. (The Home "brief" and digests, by contrast, are genuinely *derived* from the data.)
+
+---
+
 ## Architecture
 
 Orbit is organized around three clean seams so the UI never depends on where its data or intelligence comes from.
 
 ### 1. The data seam (`src/lib/data/queries.ts`)
 
-Every data access is an `async` function returning a Promise. Today they resolve from in-memory seeds (`seed*.ts`, `people.ts`); later each becomes a `fetch`. Callers only ever see the Promise signatures.
+Every data access is an `async` function returning a Promise. Today they resolve from in-memory seeds (`seed*.ts`, `people.ts`) layered with browser-local writes; later each becomes a `fetch`. Callers only ever see the Promise signatures.
 
 - **Shell chrome** (user, workspaces, sidebar) resolves instantly, so the frame never flashes a skeleton.
 - **Page content** simulates latency inside the client hooks (`src/hooks/use-*.ts`), so real loading states are exercised without slowing the frame.
+- **Writes persist locally.** Created items, field edits, and deletions are layered over the seed via small `*-store.ts` modules backed by `localStorage`, so changes survive a refresh. Swapping to a real API replaces these stores and nothing else.
 
 ### 2. The intelligence layer (`src/lib/insights.ts`)
 
@@ -120,10 +144,10 @@ A server component renders the frame and its data up front. Client providers (th
 | `/` | Home: continue working, synthesized brief, today's focus, pinned projects |
 | `/projects` | Projects overview: featured project, filters, digest grid |
 | `/projects/[slug]` | Project detail: hero, tasks, team, timeline, documents, AI summary |
-| `/tasks` | Task board and summary |
-| `/documents` | Document board |
-| `/documents/[slug]` | Document reader |
-| `/calendar` | Schedule view |
+| `/tasks` | Task summary, grouped list, and a drag-and-drop status board |
+| `/documents` | Document library, with a rich Markdown viewer/editor drawer |
+| `/documents/[slug]` | Long-form document reader |
+| `/calendar` | Day schedule with drag-to-create / move / resize |
 | `/settings` | Profile, workspace, appearance, notifications |
 
 ---
@@ -155,12 +179,13 @@ src/
 
 ## Roadmap
 
-- Swap the in-memory seeds for a real API (FastAPI). By design this touches only `src/lib/data/`.
+- Swap the `localStorage`-backed seed layer for a real API (FastAPI). By design this touches only `src/lib/data/`.
 - Real authentication in place of the demo cookie gate.
-- Wire the write paths (create and edit projects, tasks, and documents).
+- Real-time collaboration: presence indicators and shared, multi-device state.
+- Round out the write paths still stubbed as "coming soon" (new project, invite, import).
 
 ---
 
 ## Notes
 
-This is a personal portfolio project. Data is mock, but the intelligence surfaced from it is always derived, never invented. The goal is a product that feels shipped, down to the details.
+This is a personal portfolio project. Data is mock (seed + browser-local persistence), but the intelligence surfaced from it is always derived, never invented, and AI summaries are labeled as sample content. The goal is a product that feels shipped, down to the details.

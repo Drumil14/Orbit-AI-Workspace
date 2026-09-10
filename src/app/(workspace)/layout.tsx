@@ -6,6 +6,8 @@ import { AppSidebar } from "@/components/layout/app-sidebar";
 import { CommandSpine } from "@/components/layout/command-spine";
 import { ShellProvider } from "@/components/layout/shell-provider";
 import { WorkspaceProvider } from "@/components/layout/workspace-provider";
+import { TaskActionsProvider } from "@/components/tasks/task-actions-provider";
+import { DocActionsProvider } from "@/components/documents/doc-actions-provider";
 import {
   getActivity,
   getActiveWorkspace,
@@ -54,19 +56,23 @@ export default async function WorkspaceLayout({
         initialActiveId={activeWorkspace.id}
       >
         <AmbientProvider>
-          <AmbientFrame>
-            <CommandSpine />
-            <div className="flex min-h-0 flex-1">
-              <AppSidebar
-                user={user}
-                favorites={favorites}
-                pinnedProjects={pinnedProjects}
-              />
-              <main className="work-surface min-w-0 flex-1">{children}</main>
-              <AgendaRail schedule={schedule} activity={activity} />
-            </div>
-            <CommandPalette />
-          </AmbientFrame>
+          <TaskActionsProvider>
+           <DocActionsProvider>
+            <AmbientFrame>
+              <CommandSpine />
+              <div className="flex min-h-0 flex-1">
+                <AppSidebar
+                  user={user}
+                  favorites={favorites}
+                  pinnedProjects={pinnedProjects}
+                />
+                <main className="work-surface min-w-0 flex-1">{children}</main>
+                <AgendaRail schedule={schedule} activity={activity} />
+              </div>
+              <CommandPalette />
+            </AmbientFrame>
+           </DocActionsProvider>
+          </TaskActionsProvider>
         </AmbientProvider>
       </WorkspaceProvider>
     </ShellProvider>

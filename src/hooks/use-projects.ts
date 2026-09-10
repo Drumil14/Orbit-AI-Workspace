@@ -7,7 +7,8 @@ import {
   getProjects,
   simulateLatency,
 } from "@/lib/data/queries";
-import type { ProjectDetail, Task } from "@/types";
+import { setTaskOverride } from "@/lib/data/task-store";
+import type { ProjectDetail, Task, TaskWithProject } from "@/types";
 
 /**
  * Projects data hooks.
@@ -58,11 +59,20 @@ export function useToggleTask(slug: string) {
     onMutate: async (taskId: string) => {
       await client.cancelQueries({ queryKey: key });
       const previous = client.getQueryData<ProjectDetail>(key);
-      client.setQueryData<ProjectDetail>(key, (old) =>
-        old
-          ? { ...old, tasks: old.tasks.map((t) => (t.id === taskId ? toggled(t) : t)) }
-          : old,
-      );
+      const target = previous?.tasks.find((t) => t.id === taskId);
+      if (target) {
+        const status = toggled(target).status;
+        client.setQueryData<ProjectDetail>(key, (old) =>
+          old
+            ? { ...old, tasks: old.tasks.map((t) => (t.id === taskId ? { ...t, status } : t)) }
+            : old,
+        );
+        // Keep the cross-project list in sync and persist for the session.
+        client.setQueryData<TaskWithProject[]>(queryKeys.tasks, (old) =>
+          old?.map((t) => (t.id === taskId ? { ...t, status } : t)),
+        );
+        setTaskOverride(taskId, { status });
+      }
       return { previous };
     },
     onError: (_err, _taskId, ctx) => {

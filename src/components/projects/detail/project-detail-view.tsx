@@ -67,7 +67,15 @@ export function ProjectDetailView({ slug }: { slug: string }) {
             <ProjectTasks slug={slug} tasks={project.tasks} />
           </motion.div>
           <motion.div variants={fadeInUp}>
-            <ProjectDocuments documents={project.documents} />
+            <ProjectDocuments
+              project={{
+                id: project.id,
+                name: project.name,
+                slug: project.slug,
+                hue: project.hue,
+              }}
+              documents={project.documents}
+            />
           </motion.div>
         </div>
 

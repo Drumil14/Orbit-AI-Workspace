@@ -2,7 +2,6 @@
 
 import { usePathname } from "next/navigation";
 import { ChevronRight, Menu, PanelLeft, PanelRight, Plus, Search } from "lucide-react";
-import { toast } from "sonner";
 import { Kbd } from "@/components/common/kbd";
 import { OrbitMark } from "@/components/common/logo";
 import { ThemeToggle } from "@/components/common/theme-toggle";
@@ -13,6 +12,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { SpecularCTA } from "@/components/common/specular-cta";
+import { useTaskActions } from "@/components/tasks/task-actions-provider";
 import { primaryNav } from "@/lib/navigation";
 import { CommandPill } from "./command-pill";
 import { NotificationsMenu } from "./notifications-menu";
@@ -45,6 +45,7 @@ export function CommandSpine() {
   const { toggleCollapsed, setMobileOpen, toggleAgenda, setCommandOpen } =
     useShell();
   const { active } = useWorkspace();
+  const { openCreate } = useTaskActions();
   const section = useSectionTitle();
 
   return (
@@ -134,10 +135,7 @@ export function CommandSpine() {
             </span>
           </TooltipContent>
         </Tooltip>
-        <SpecularCTA
-          className="ml-1"
-          onClick={() => toast("Quick create is coming soon")}
-        >
+        <SpecularCTA className="ml-1" onClick={() => openCreate()}>
           <Plus className="size-4" />
           <span className="hidden sm:inline">New</span>
         </SpecularCTA>

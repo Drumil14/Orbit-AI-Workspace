@@ -24,6 +24,23 @@ import {
 } from "./seed";
 import { projectDetails } from "./seed-projects";
 import { workspaceDocs } from "./seed-docs";
+import {
+  applyOverride,
+  getCreatedTasks,
+  getCreatedTasksForProject,
+  isTaskDeleted,
+} from "./task-store";
+import {
+  applyDocOverride,
+  getCreatedDocs,
+  getCreatedDocsForProject,
+  isDocDeleted,
+} from "./doc-store";
+import {
+  applyEventOverride,
+  getCreatedEvents,
+  isEventDeleted,
+} from "./schedule-store";
 import { buildHomeBrief, type HomeBrief } from "@/lib/insights";
 
 /**
@@ -81,22 +98,37 @@ export async function getProjectDetail(
   const project = projects.find((p) => p.slug === slug);
   const extras = projectDetails[slug];
   if (!project || !extras) return undefined;
-  return { ...project, ...extras };
+  // Layer created tasks + field edits on top of seed, minus any deletions.
+  // Overrides apply to created items too, so edits to them survive a refresh.
+  const tasks = [
+    ...getCreatedTasksForProject(project.id).map(applyOverride),
+    ...extras.tasks.filter((t) => !isTaskDeleted(t.id)).map(applyOverride),
+  ];
+  const documents = [
+    ...getCreatedDocsForProject(project.id).map(applyDocOverride),
+    ...extras.documents.filter((d) => !isDocDeleted(d.id)).map(applyDocOverride),
+  ];
+  return { ...project, ...extras, tasks, documents };
 }
 
 /** Every task across every project, each carrying its project context. */
 export async function getTasks(): Promise<TaskWithProject[]> {
-  return projects.flatMap((project) => {
+  const seeded = projects.flatMap((project) => {
     const extras = projectDetails[project.slug];
     if (!extras) return [];
-    return extras.tasks.map((task) => ({
-      ...task,
-      projectId: project.id,
-      projectName: project.name,
-      projectSlug: project.slug,
-      projectHue: project.hue,
-    }));
+    return extras.tasks
+      .filter((task) => !isTaskDeleted(task.id))
+      .map((task) => ({
+        ...applyOverride(task),
+        projectId: project.id,
+        projectName: project.name,
+        projectSlug: project.slug,
+        projectHue: project.hue,
+      }));
   });
+  // Created tasks lead the list; overrides apply to them too so their edits
+  // survive a refresh.
+  return [...getCreatedTasks().map(applyOverride), ...seeded];
 }
 
 /** A readable workspace document (roadmap, wiki, …) by slug. */
@@ -108,21 +140,28 @@ export async function getWorkspaceDoc(
 
 /** Every document across every project, each carrying its project context. */
 export async function getDocuments(): Promise<DocumentWithProject[]> {
-  return projects.flatMap((project) => {
+  const seeded = projects.flatMap((project) => {
     const extras = projectDetails[project.slug];
     if (!extras) return [];
-    return extras.documents.map((doc) => ({
-      ...doc,
-      projectId: project.id,
-      projectName: project.name,
-      projectSlug: project.slug,
-      projectHue: project.hue,
-    }));
+    return extras.documents
+      .filter((doc) => !isDocDeleted(doc.id))
+      .map((doc) => ({
+        ...applyDocOverride(doc),
+        projectId: project.id,
+        projectName: project.name,
+        projectSlug: project.slug,
+        projectHue: project.hue,
+      }));
   });
+  return [...getCreatedDocs().map(applyDocOverride), ...seeded];
 }
 
 export async function getSchedule(): Promise<ScheduleEvent[]> {
-  return schedule;
+  const events = [
+    ...schedule.filter((e) => !isEventDeleted(e.id)).map(applyEventOverride),
+    ...getCreatedEvents().map(applyEventOverride),
+  ];
+  return events.sort((a, b) => a.start.localeCompare(b.start));
 }
 
 export async function getActivity(): Promise<ActivityItem[]> {

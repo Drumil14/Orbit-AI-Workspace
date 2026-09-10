@@ -3,6 +3,7 @@
 import { FileText, FolderPlus, Upload, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { CardEyebrow } from "@/components/common/card";
+import { useDocActions } from "@/components/documents/doc-actions-provider";
 import { accentMark } from "@/lib/accent";
 import { cn } from "@/lib/utils";
 import type { AccentHue } from "@/types";
@@ -26,6 +27,8 @@ const actions: {
  * the interaction reads as tactile rather than decorative.
  */
 export function QuickActionsCard() {
+  const { openCreateDoc } = useDocActions();
+
   return (
     <section>
       <CardEyebrow className="mb-3 px-0.5">Quick actions</CardEyebrow>
@@ -34,7 +37,11 @@ export function QuickActionsCard() {
           <button
             key={label}
             type="button"
-            onClick={() => toast(`${label} is coming soon`)}
+            onClick={() =>
+              label === "New document"
+                ? openCreateDoc()
+                : toast(`${label} is coming soon`)
+            }
             className="group flex flex-col items-start gap-3 rounded-xl border border-border/60 bg-muted/40 p-4 text-left outline-none transition-[transform,background-color,border-color,box-shadow] duration-200 ease-out hover:-translate-y-1 hover:border-border/80 hover:bg-card hover:shadow-md focus-visible:ring-3 focus-visible:ring-ring/50 active:translate-y-0 active:shadow-sm"
           >
             <span

@@ -345,6 +345,16 @@
   }
 }
 
+/* CSS-driven entrances (nav, page template) use tw-animate-css `animate-in`,
+ * which isn't reduced-motion-aware on its own — neutralize it so the resting
+ * (visible) state shows instantly for users who ask for less motion. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-in,
+  .animate-out {
+    animation: none !important;
+  }
+}
+
 /* Chrome panels (sidebar, agenda rail) carry an even fainter share. */
 .ambient-panel {
   background-color: color-mix(in oklab, var(--ambient) 3%, var(--sidebar));

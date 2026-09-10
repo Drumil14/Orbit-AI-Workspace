@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import { ListChecks, Plus } from "lucide-react";
-import { toast } from "sonner";
 import {
   Card,
   CardContent,
@@ -11,9 +10,11 @@ import {
 } from "@/components/common/card";
 import { EmptyState } from "@/components/common/empty-state";
 import { ProgressBar } from "@/components/common/progress-bar";
+import { useTaskActions } from "@/components/tasks/task-actions-provider";
 import { useToggleTask } from "@/hooks/use-projects";
+import { projects } from "@/lib/data/seed";
 import { cn } from "@/lib/utils";
-import type { Task } from "@/types";
+import type { Task, TaskWithProject } from "@/types";
 import { TaskRow } from "./task-row";
 
 type TaskFilter = "all" | "active" | "done";
@@ -43,8 +44,19 @@ function groupTasks(tasks: Task[]): [string, Task[]][] {
 export function ProjectTasks({ slug, tasks }: { slug: string; tasks: Task[] }) {
   const [filter, setFilter] = useState<TaskFilter>("all");
   const toggle = useToggleTask(slug);
+  const { openTask, openCreate } = useTaskActions();
+  const project = projects.find((p) => p.slug === slug);
   const doneCount = tasks.filter((t) => t.status === "done").length;
   const pct = tasks.length ? (doneCount / tasks.length) * 100 : 0;
+
+  /** Lift a project-scoped task into the cross-project shape the detail expects. */
+  const withProject = (task: Task): TaskWithProject => ({
+    ...task,
+    projectId: project?.id ?? slug,
+    projectName: project?.name ?? slug,
+    projectSlug: slug,
+    projectHue: project?.hue ?? "slate",
+  });
 
   const visible = useMemo(
     () =>
@@ -98,7 +110,7 @@ export function ProjectTasks({ slug, tasks }: { slug: string; tasks: Task[] }) {
           </div>
           <button
             type="button"
-            onClick={() => toast("New task")}
+            onClick={() => openCreate(slug)}
             className="inline-flex size-7 shrink-0 items-center justify-center rounded-lg border border-border/70 bg-card text-muted-foreground shadow-xs transition-all duration-150 outline-none hover:border-border hover:text-foreground active:scale-95 focus-visible:ring-3 focus-visible:ring-ring/50"
             aria-label="Add task"
           >
@@ -132,6 +144,7 @@ export function ProjectTasks({ slug, tasks }: { slug: string; tasks: Task[] }) {
                     key={task.id}
                     task={task}
                     onToggle={() => toggle.mutate(task.id)}
+                    onOpen={() => openTask(withProject(task))}
                   />
                 ))}
               </ul>
@@ -142,7 +155,7 @@ export function ProjectTasks({ slug, tasks }: { slug: string; tasks: Task[] }) {
         {groups.length > 0 && (
           <button
             type="button"
-            onClick={() => toast("New task")}
+            onClick={() => openCreate(slug)}
             className="group -mx-1 flex w-[calc(100%+0.5rem)] items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors duration-150 outline-none hover:bg-accent/60 hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
           >
             <span className="grid size-[18px] place-items-center rounded-full border border-dashed border-border text-muted-foreground transition-colors group-hover:border-muted-foreground">

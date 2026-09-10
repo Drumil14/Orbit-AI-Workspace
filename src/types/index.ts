@@ -215,6 +215,8 @@ export interface Task {
   due?: string;
   /** Grouping bucket, e.g. "This week". */
   group: string;
+  /** Optional long-form detail, shown (and editable) in the task detail view. */
+  description?: string;
 }
 
 export type DocKind = "doc" | "spec" | "design" | "sheet";
@@ -228,6 +230,8 @@ export interface DocumentItem {
   ownerId: string;
   /** ISO datetime of last edit. */
   updatedAt: string;
+  /** Long-form body (plain text / light markdown), shown in the doc viewer. */
+  body?: string;
 }
 
 export type FeedKind = "comment" | "upload" | "status" | "ai";

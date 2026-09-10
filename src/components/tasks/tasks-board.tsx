@@ -3,23 +3,27 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ListChecks, TriangleAlert } from "lucide-react";
+import { Columns3, LayoutList, ListChecks, TriangleAlert } from "lucide-react";
 import { Card, CardContent } from "@/components/common/card";
 import { EmptyState } from "@/components/common/empty-state";
 import { FilterChip } from "@/components/common/filter-chip";
 import { Mark } from "@/components/common/mark";
 import { TaskRow } from "@/components/projects/detail/task-row";
 import { TasksSummary } from "@/components/tasks/tasks-summary";
+import { TasksKanban } from "@/components/tasks/tasks-kanban";
+import { useTaskActions } from "@/components/tasks/task-actions-provider";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTasks, useToggleTask } from "@/hooks/use-tasks";
 import { currentUser } from "@/lib/data/seed";
 import { buildTaskDigest } from "@/lib/insights";
 import { fadeInUp, staggerChildren } from "@/lib/motion";
+import { cn } from "@/lib/utils";
 import type { AccentHue, TaskWithProject } from "@/types";
 
 type Assignee = "mine" | "all";
 type Status = "active" | "all" | "done";
+type View = "list" | "board";
 
 interface ProjectGroup {
   slug: string;
@@ -47,18 +51,28 @@ function groupByProject(tasks: TaskWithProject[]): ProjectGroup[] {
 export function TasksBoard() {
   const { data, isPending, isError, refetch } = useTasks();
   const toggle = useToggleTask();
+  const { openTask } = useTaskActions();
   const [assignee, setAssignee] = useState<Assignee>("mine");
   const [status, setStatus] = useState<Status>("active");
+  const [view, setView] = useState<View>("list");
+
+  // Board columns are statuses, so the board only respects the assignee filter.
+  const assigneeFiltered = useMemo(
+    () =>
+      (data ?? []).filter(
+        (task) => assignee !== "mine" || task.assigneeId === currentUser.id,
+      ),
+    [data, assignee],
+  );
 
   const visible = useMemo(
     () =>
-      (data ?? []).filter((task) => {
-        if (assignee === "mine" && task.assigneeId !== currentUser.id) return false;
+      assigneeFiltered.filter((task) => {
         if (status === "active" && task.status === "done") return false;
         if (status === "done" && task.status !== "done") return false;
         return true;
       }),
-    [data, assignee, status],
+    [assigneeFiltered, status],
   );
   const groups = useMemo(() => groupByProject(visible), [visible]);
   const digest = useMemo(
@@ -81,16 +95,47 @@ export function TasksBoard() {
         <FilterChip active={assignee === "all"} onClick={() => setAssignee("all")}>
           Everyone
         </FilterChip>
-        <span className="mx-1 h-5 w-px bg-border" aria-hidden />
-        {(["active", "all", "done"] as const).map((value) => (
-          <FilterChip
-            key={value}
-            active={status === value}
-            onClick={() => setStatus(value)}
-          >
-            <span className="capitalize">{value}</span>
-          </FilterChip>
-        ))}
+        {view === "list" && (
+          <>
+            <span className="mx-1 h-5 w-px bg-border" aria-hidden />
+            {(["active", "all", "done"] as const).map((value) => (
+              <FilterChip
+                key={value}
+                active={status === value}
+                onClick={() => setStatus(value)}
+              >
+                <span className="capitalize">{value}</span>
+              </FilterChip>
+            ))}
+          </>
+        )}
+
+        {/* View switch — list of grouped cards, or a drag-and-drop status board. */}
+        <div className="ml-auto flex gap-0.5 rounded-lg bg-muted p-0.5">
+          {(
+            [
+              { value: "list", label: "List", icon: LayoutList },
+              { value: "board", label: "Board", icon: Columns3 },
+            ] as const
+          ).map(({ value, label, icon: Icon }) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setView(value)}
+              aria-pressed={view === value}
+              aria-label={`${label} view`}
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-[7px] px-2.5 py-1 text-xs font-medium transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+                view === value
+                  ? "bg-card text-foreground shadow-xs"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              <Icon className="size-3.5" />
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {isPending ? (
@@ -114,6 +159,8 @@ export function TasksBoard() {
             </Button>
           }
         />
+      ) : view === "board" ? (
+        <TasksKanban tasks={assigneeFiltered} />
       ) : groups.length === 0 ? (
         <EmptyState
           icon={ListChecks}
@@ -155,6 +202,7 @@ export function TasksBoard() {
                       key={task.id}
                       task={task}
                       onToggle={() => toggle.mutate(task.id)}
+                      onOpen={() => openTask(task)}
                     />
                   ))}
                 </ul>

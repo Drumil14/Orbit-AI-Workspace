@@ -36,9 +36,12 @@ interface DocProject {
 export function DocumentCard({
   doc,
   project,
+  onOpen,
 }: {
   doc: DocumentItem;
   project?: DocProject;
+  /** Open the document viewer. When omitted, the card isn't interactive. */
+  onOpen?: () => void;
 }) {
   const Icon = kindIcon[doc.kind];
   const owner = getPerson(doc.ownerId);
@@ -46,6 +49,7 @@ export function DocumentCard({
   return (
     <button
       type="button"
+      onClick={onOpen}
       className="group flex h-full w-full flex-col rounded-xl border border-border/70 bg-card p-5 text-left shadow-xs transition-[transform,box-shadow,border-color] duration-200 ease-out outline-none hover:-translate-y-0.5 hover:border-border hover:shadow-md focus-visible:ring-3 focus-visible:ring-ring/50"
     >
       <div className="flex items-center justify-between gap-2">

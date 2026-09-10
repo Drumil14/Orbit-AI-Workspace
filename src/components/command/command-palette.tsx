@@ -1,11 +1,12 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Command, defaultFilter } from "cmdk";
 import { useTheme } from "next-themes";
 import {
   type LucideIcon,
+  FileText,
   Monitor,
   Moon,
   PanelLeft,
@@ -15,14 +16,18 @@ import {
   Settings,
   Sun,
 } from "lucide-react";
-import { toast } from "sonner";
 import { Kbd, KbdSequence } from "@/components/common/kbd";
 import { OrbitMark } from "@/components/common/logo";
 import { Mark } from "@/components/common/mark";
+import { StatusDot } from "@/components/common/status-dot";
 import { useShell } from "@/components/layout/shell-provider";
+import { useTaskActions } from "@/components/tasks/task-actions-provider";
+import { useDocActions } from "@/components/documents/doc-actions-provider";
+import { useTasks } from "@/hooks/use-tasks";
+import { useDocuments } from "@/hooks/use-documents";
 import { projects } from "@/lib/data/seed";
 import { primaryNav } from "@/lib/navigation";
-import { projectStatusMeta } from "@/lib/status";
+import { projectStatusMeta, taskStatusMeta } from "@/lib/status";
 
 /**
  * cmdk's default fuzzy scorer returns a *tiny* non-zero score for very loose
@@ -114,6 +119,13 @@ export function CommandPalette() {
   const { commandOpen, setCommandOpen, toggleCollapsed, toggleAgenda } = useShell();
   const router = useRouter();
   const { setTheme } = useTheme();
+  const { openCreate, openTask } = useTaskActions();
+  const { openDoc } = useDocActions();
+  // Load tasks + docs only while the palette is open, so search can reach them.
+  const { data: tasks } = useTasks(commandOpen);
+  const { data: docs } = useDocuments(commandOpen);
+  const [search, setSearch] = useState("");
+  const searching = search.trim().length > 0;
 
   const run = (action: () => void) => {
     setCommandOpen(false);
@@ -123,7 +135,10 @@ export function CommandPalette() {
   return (
     <Command.Dialog
       open={commandOpen}
-      onOpenChange={setCommandOpen}
+      onOpenChange={(open) => {
+        setCommandOpen(open);
+        if (!open) setSearch("");
+      }}
       filter={relevanceFilter}
       label="Command menu"
       overlayClassName="fixed inset-0 z-50 bg-foreground/25 backdrop-blur-sm data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0"
@@ -133,7 +148,9 @@ export function CommandPalette() {
       <div className="flex items-center gap-2.5 border-b border-border/70 px-4">
         <Search className="size-[18px] shrink-0 text-muted-foreground/80" />
         <Command.Input
-          placeholder="Search or jump to…"
+          value={search}
+          onValueChange={setSearch}
+          placeholder="Search tasks, docs, projects…"
           className="h-14 w-full bg-transparent text-[14px] text-foreground outline-none placeholder:text-muted-foreground/70"
         />
       </div>
@@ -177,6 +194,44 @@ export function CommandPalette() {
           ))}
         </Command.Group>
 
+        {/* Tasks + docs are only surfaced while searching, so the resting
+            palette stays a tight set of destinations and actions. */}
+        {searching && tasks && tasks.length > 0 && (
+          <Command.Group heading="Tasks">
+            {tasks.map((task) => (
+              <Row
+                key={task.id}
+                value={`${task.title} ${task.projectName}`}
+                leading={
+                  <span className="grid size-8 place-items-center rounded-lg bg-muted">
+                    <StatusDot tone={taskStatusMeta[task.status].tone} />
+                  </span>
+                }
+                title={task.title}
+                subtitle={`${task.projectName} · ${taskStatusMeta[task.status].label}`}
+                action="Open"
+                onSelect={() => run(() => openTask(task))}
+              />
+            ))}
+          </Command.Group>
+        )}
+
+        {searching && docs && docs.length > 0 && (
+          <Command.Group heading="Documents">
+            {docs.map((doc) => (
+              <Row
+                key={doc.id}
+                value={`${doc.title} ${doc.projectName}`}
+                icon={FileText}
+                title={doc.title}
+                subtitle={doc.projectName}
+                action="Open"
+                onSelect={() => run(() => openDoc(doc))}
+              />
+            ))}
+          </Command.Group>
+        )}
+
         <Command.Group heading="Actions">
           <Row
             icon={Plus}
@@ -184,7 +239,7 @@ export function CommandPalette() {
             subtitle="Add a task to any project"
             value="new task create"
             action="Run"
-            onSelect={() => run(() => toast("New task"))}
+            onSelect={() => run(() => openCreate())}
           />
           <Row
             icon={PanelLeft}

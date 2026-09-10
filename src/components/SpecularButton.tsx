@@ -138,7 +138,11 @@ const SpecularButton = ({
   const fxRef = useRef<HTMLSpanElement>(null);
   const propsRef = useRef<ShaderProps>({} as ShaderProps);
 
-  propsRef.current = { radius, lineColor, baseColor, intensity, shineSize, shineFade, thickness, speed, followMouse, proximity, autoAnimate };
+  // Keep the latest props available to the render loop without re-subscribing.
+  // Assigned in an effect (not during render) so it never mutates a ref mid-render.
+  useEffect(() => {
+    propsRef.current = { radius, lineColor, baseColor, intensity, shineSize, shineFade, thickness, speed, followMouse, proximity, autoAnimate };
+  });
 
   useEffect(() => {
     const btn = btnRef.current;

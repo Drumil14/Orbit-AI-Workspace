@@ -7,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/common/card";
+import { InlineError } from "@/components/common/inline-error";
 import { Mark } from "@/components/common/mark";
 import { ProgressBar } from "@/components/common/progress-bar";
 import { StatusDot } from "@/components/common/status-dot";
@@ -15,7 +16,7 @@ import { usePinnedProjects } from "@/hooks/use-home";
 import { projectStatusMeta } from "@/lib/status";
 
 export function PinnedProjectsCard() {
-  const { data, isPending } = usePinnedProjects();
+  const { data, isPending, isError, refetch } = usePinnedProjects();
   const projects = data?.slice(0, 4);
 
   return (
@@ -31,7 +32,9 @@ export function PinnedProjectsCard() {
       </CardHeader>
 
       <CardContent className="pt-1">
-        {isPending || !projects ? (
+        {isError ? (
+          <InlineError message="Couldn't load pinned projects." onRetry={refetch} />
+        ) : isPending || !projects ? (
           <ul className="flex flex-col gap-1">
             {[0, 1, 2, 3].map((i) => (
               <li key={i} className="flex items-center gap-3 px-2 py-2.5">

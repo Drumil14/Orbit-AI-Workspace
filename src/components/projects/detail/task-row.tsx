@@ -16,7 +16,16 @@ const stateLabel: Partial<Record<TaskStatus, string>> = {
   in_review: "In review",
 };
 
-export function TaskRow({ task, onToggle }: { task: Task; onToggle: () => void }) {
+export function TaskRow({
+  task,
+  onToggle,
+  onOpen,
+}: {
+  task: Task;
+  onToggle: () => void;
+  /** Open the task's detail view. When omitted, the title isn't clickable. */
+  onOpen?: () => void;
+}) {
   const isDone = task.status === "done";
   const assignee = getPerson(task.assigneeId);
   const priority = priorityMeta[task.priority];
@@ -55,29 +64,45 @@ export function TaskRow({ task, onToggle }: { task: Task; onToggle: () => void }
         </motion.span>
       </motion.button>
 
-      <span className="min-w-0 flex-1">
-        <span className="relative inline-block max-w-full truncate align-bottom">
-          <span
-            className={cn(
-              "block truncate text-sm transition-colors duration-300",
-              isDone ? "text-muted-foreground" : "text-foreground",
+      {(() => {
+        const label = (
+          <>
+            <span className="relative inline-block max-w-full truncate align-bottom">
+              <span
+                className={cn(
+                  "block truncate text-sm transition-colors duration-300",
+                  isDone ? "text-muted-foreground" : "text-foreground",
+                )}
+              >
+                {task.title}
+              </span>
+              {/* Strike that draws across the label on completion. */}
+              <motion.span
+                aria-hidden
+                initial={false}
+                animate={{ scaleX: isDone ? 1 : 0 }}
+                transition={transition.spring}
+                className="absolute inset-x-0 top-1/2 h-px origin-left bg-muted-foreground/70"
+              />
+            </span>
+            {state && !isDone && (
+              <span className="block text-xs text-muted-foreground">{state}</span>
             )}
+          </>
+        );
+
+        return onOpen ? (
+          <button
+            type="button"
+            onClick={onOpen}
+            className="min-w-0 flex-1 rounded text-left outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
           >
-            {task.title}
-          </span>
-          {/* Strike that draws across the label on completion. */}
-          <motion.span
-            aria-hidden
-            initial={false}
-            animate={{ scaleX: isDone ? 1 : 0 }}
-            transition={transition.spring}
-            className="absolute inset-x-0 top-1/2 h-px origin-left bg-muted-foreground/70"
-          />
-        </span>
-        {state && !isDone && (
-          <span className="block text-xs text-muted-foreground">{state}</span>
-        )}
-      </span>
+            {label}
+          </button>
+        ) : (
+          <span className="min-w-0 flex-1">{label}</span>
+        );
+      })()}
 
       <span className="flex shrink-0 items-center gap-2.5">
         {task.due && (
